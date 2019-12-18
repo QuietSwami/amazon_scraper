@@ -13,8 +13,6 @@ import logging
 
 AMAZON = "https://amazon.{}/dp/{}"
 
-DBNAME = ""
-
 COUNTRY = {
     'fr': {'code': "FRANCE", 'currency': 'EUR'},
     'it': {'code': "ITALY", 'currency': 'EUR'},
@@ -49,16 +47,19 @@ def getProductPrice(countryCode, productId, isLocal=None, save=None):
             soup = BeautifulSoup(open(isLocal, "r").read(), "html.parser") # Creates a BS object from a local HTML file
         else:
             print(AMAZON.format(countryCode, productId))
-            headers = { "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36"}
+            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
             r = requests.get(AMAZON.format(countryCode, productId), headers=headers) # Gets the web page
             soup = BeautifulSoup(r.content, "html.parser")
 
         if save:
             # If we want to save the page, pass it a path, terminating with .html
             with open(save, "w") as f: f.write(soup.prettify())
-
+        title = soup.find(id="productTitle")
+        print(title)
         price = soup.find(id="priceblock_ourprice")
+        print(price)
         dealprice = soup.find(id="priceblock_dealprice")
+        print(dealprice)
         deal = False
         available = True
         if dealprice:
@@ -68,6 +69,7 @@ def getProductPrice(countryCode, productId, isLocal=None, save=None):
         elif not dealprice and not price:
             available = False
             currentPrice = 0
+            return False
         else:
             currentPrice = float(price.text.strip().split()[0].replace(",", "."))
 
@@ -79,14 +81,14 @@ def getProductPrice(countryCode, productId, isLocal=None, save=None):
         print("FAIL")
 
 
-def insertToDatabase(data):
+def insertToDatabase(data, database):
     """Inserts data into the database
 
     Arguments:
         data {Tuple} -- A tuple with the specifications of the table entry.
     """
-    conn = getConnection()
-    insertToDatabase(data, conn)
+    conn = getConnection(database)
+    insert(data, conn)
 
 
 def moneyConversion(baseValue, baseCurrency):
@@ -104,16 +106,18 @@ def moneyConversion(baseValue, baseCurrency):
     return baseValue / rates[baseCurrency]
 
 
-def runner():
+def runner(database):
     """Code that runs every x minutes/hours/days?
     Searchs all the selected amazon stores for the product, and inserts it in the database.
     """
-    if lastDate < datetime.date.today():
-        for i in getAllItems(getConnection(DBNAME)):
+    if getLastDate() < datetime.date.today():
+        for i in getAllItems(getConnection(database)):
             print("*** Starting product with ID: {} ***".format(i))
             for k,v in COUNTRY:
                 print("*** Checking price for {} in {} ***".format(i, v['code']))
-                insertToDatabase(getProductPrice(k, i[0]))
+                a = getProductPrice(k, i[0])
+                if a:
+                    insertToDatabase(a, database)
                 time.sleep(5)
     else:
         # Sleeping for one hour...
@@ -122,4 +126,4 @@ def runner():
         runner()
 
 if __name__ == "__main__":
-    runner()
+    runner('test.db')

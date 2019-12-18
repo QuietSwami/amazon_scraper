@@ -32,7 +32,7 @@ def getConnection(dbName):
 
 @sqliteException
 def createTable(connection):
-    connection.cursor().execute('''CREATE TABLE IF NOT EXISTS products (id text, date date, countryCode text,currentPrice real, isDeal real, available real)''')
+    connection.cursor().execute('''CREATE TABLE IF NOT EXISTS products (id text, date date, countryCode text, currentPrice real, isDeal real, available real)''')
     connection.commit()
 
 @sqliteException
@@ -61,6 +61,11 @@ def clearTable(connection):
     connection.commit()
 
 @sqliteException
+def dropTable(connection):
+    connection.cursor().execute('drop table products')
+    connection.commit()
+
+@sqliteException
 def selectWithID(id, connection):
     """Selects all entries on the database where the ID matches with the given ID.
 
@@ -72,7 +77,7 @@ def selectWithID(id, connection):
         List -- A list of tuples. Each tuples is an entry in the database.
     """
     cursor = connection.cursor()
-    return c.execute('select * from products where id = ?', (id,)).fetchall()
+    return cursor.execute('select * from products where id = ?', (id,)).fetchall()
 
 @sqliteException
 def selectByAvailability(connection):
@@ -108,7 +113,7 @@ def getAllItems(connection):
         connection {SQLiteConnection} -- A SQLite connection.
 
     Returns:
-        List -- A list of tuples. Each tuples is a distinct item id.
+        List -- A list of tuples. Each tuple is a distinct item id.
     """
     cursor = connection.cursor()
     return cursor.execute('select distinct id from products').fetchall()
@@ -128,11 +133,26 @@ def getLastDate(connection):
     cursor = connection.cursor()
     return datetime.datetime.strptime(cursor.execute('SELECT MAX(date) from products').fetchone()[0], '%Y-%m-%d').date()
 
+@sqliteException
+def getTodaysValues(connection):
+    """Gets entries from today.
+
+    Arguments:
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        List -- A list of tuples. Each tuple is an item that was scraped.
+    """
+    cursor = connection.cursor()
+    return cursor.execute('SELECT * from products where date = ?', (datetime.date.today(),)).fetchall()
+
 
 if __name__ == "__main__":
     c = getConnection('test.db')
-    # createTable(c)
-    print(getLastDate(c))
+    # clearTable(c)
+    # dropTable(c)
+    createTable(c)
+    # print(getLastDate(c))
     # data = ["asdasafasd", datetime.date.today(), float(90.9), 1, 1]
     # insert(data, c)
     # data = ["rrrrrr", datetime.date.today(), float(91.9), 1, 1]
