@@ -10,6 +10,11 @@ from dbutils import *
 import json
 import time
 import logging
+from fake_useragent import UserAgent
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 
 AMAZON = "https://amazon.{}/dp/{}"
 
@@ -42,43 +47,49 @@ def getProductPrice(countryCode, productId, isLocal=None, save=None):
         Dict -- A dictionary with the date, current price, and if that price is a deal.
     """
 
+    if isLocal:
+        soup = BeautifulSoup(open(isLocal, "r").read(), "html.parser") # Creates a BS object from a local HTML file
+    else:
+        print(AMAZON.format(countryCode, productId))
+        options = Options()
+        options.headless = True
+        driver = webdriver.Firefox(options=options)
+        driver.get(AMAZON.format(countryCode, productId))
+
+    if save:
+        # If we want to save the page, pass it a path, terminating with .html
+        with open(save, "w") as f: f.write(soup.prettify())
+
+    # Okay... So.
+    # Selenium does not return None when it doesn't find a id. It throws an exception.
+    # Because this is not a problem for us, we go around it.
     try:
-        if isLocal:
-            soup = BeautifulSoup(open(isLocal, "r").read(), "html.parser") # Creates a BS object from a local HTML file
-        else:
-            print(AMAZON.format(countryCode, productId))
-            headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-            r = requests.get(AMAZON.format(countryCode, productId), headers=headers) # Gets the web page
-            soup = BeautifulSoup(r.content, "html.parser")
-
-        if save:
-            # If we want to save the page, pass it a path, terminating with .html
-            with open(save, "w") as f: f.write(soup.prettify())
-        title = soup.find(id="productTitle")
-        print(title)
-        price = soup.find(id="priceblock_ourprice")
-        print(price)
-        dealprice = soup.find(id="priceblock_dealprice")
-        print(dealprice)
-        deal = False
-        available = True
-        if dealprice:
-            deal = True
-            currentPrice = float(dealprice.text.strip().split()[0].replace(",", "."))
-            # Strips all the spaces and special characters from the price, and turns it into a float.
-        elif not dealprice and not price:
-            available = False
-            currentPrice = 0
-            return False
-        else:
-            currentPrice = float(price.text.strip().split()[0].replace(",", "."))
-
-        if COUNTRY[countryCode]['currency'] != 'EUR': # I only care about the price in Euros. As such I convert automatically.
-            currentPrice = moneyConversion(currentPrice, COUNTRY[countryCode]['currency'])
-
-        return (productId, datetime.date.today(), COUNTRY[countryCode]['code'], currentPrice, deal, available)
+        price = driver.find_element_by_id("priceblock_ourprice").text
     except:
-        print("FAIL")
+        price = None
+    try:
+        dealprice = driver.find_element_by_id("priceblock_dealprice").text
+    except:
+        dealprice = None
+    driver.quit()
+
+    deal = False
+    available = True
+    if dealprice:
+        deal = True
+        currentPrice = float(dealprice.strip().split()[0].replace(",", ".").replace('£', ''))
+        # Strips all the spaces and special characters from the price, and turns it into a float.
+    elif not dealprice and not price:
+        available = False
+        currentPrice = 0
+        return False
+    else:
+        currentPrice = float(price.strip().split()[0].replace(",", ".").replace('£', ''))
+
+    if COUNTRY[countryCode]['currency'] != 'EUR': # I only care about the price in Euros. As such I convert automatically.
+        currentPrice = moneyConversion(currentPrice, COUNTRY[countryCode]['currency'])
+
+    return (productId, datetime.date.today(), COUNTRY[countryCode]['code'], currentPrice, deal, available)
 
 
 def insertToDatabase(data, database):

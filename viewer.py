@@ -37,7 +37,7 @@ def newProduct(database, id):
 
     print("*** Inserting new product with id {} ***".format(id))
     for k,v in COUNTRY.items():
-        a = getProductPrice(k, id, save="test-{}.html".format(k))
+        a = getProductPrice(k, id)
         if not a:
             print("*** Product does not exists in {} ***".format(v['code']))
         else:
