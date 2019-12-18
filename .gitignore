@@ -116,3 +116,6 @@ dmypy.json
 .html
 .db
 .vscode/
+
+.log
+tests/*
