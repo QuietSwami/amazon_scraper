@@ -147,6 +147,26 @@ def getTodaysValues(connection):
     return cursor.execute('SELECT * from products where date = ?', (datetime.date.today(),)).fetchall()
 
 
+@sqliteException
+def checkIfPriceDropped(id, connection):
+    """Checks if the price dropped from yesterday to today.
+
+    Arguments:
+          Arguments:
+        id {string} -- The product ID, which is the name of the table.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        Boolean
+    """
+
+    cursor = connection.cursor()
+    today = cursor.execute('SELECT currentPrice from products where id = ? and date = ?', (id, datetime.date.today())).fetchone()
+    yesterday = cursor.execute('SELECT currentPrice from products where id = ? and date = ?', (id, datetime.date.today()- datetime.timedelta(days=1))).fetchone()
+    if today < yesterday:
+        return True
+    return False
+
 if __name__ == "__main__":
     c = getConnection('test.db')
     # clearTable(c)

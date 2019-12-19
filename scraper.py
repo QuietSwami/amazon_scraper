@@ -92,14 +92,15 @@ def getProductPrice(countryCode, productId, isLocal=None, save=None):
     return (productId, datetime.date.today(), COUNTRY[countryCode]['code'], currentPrice, deal, available)
 
 
-def insertToDatabase(data, database):
+def insertToDatabase(data, connection):
     """Inserts data into the database
 
     Arguments:
         data {Tuple} -- A tuple with the specifications of the table entry.
+        connection {SQLiteObject} -- A connection ot the database.
+
     """
-    conn = getConnection(database)
-    insert(data, conn)
+    insert(data, connection)
 
 
 def moneyConversion(baseValue, baseCurrency):
@@ -118,23 +119,28 @@ def moneyConversion(baseValue, baseCurrency):
 
 
 def runner(database):
-    """Code that runs every x minutes/hours/days?
-    Searchs all the selected amazon stores for the product, and inserts it in the database.
     """
-    if getLastDate() < datetime.date.today():
-        for i in getAllItems(getConnection(database)):
-            print("*** Starting product with ID: {} ***".format(i))
-            for k,v in COUNTRY:
-                print("*** Checking price for {} in {} ***".format(i, v['code']))
-                a = getProductPrice(k, i[0])
-                if a:
-                    insertToDatabase(a, database)
-                time.sleep(5)
-    else:
-        # Sleeping for one hour...
-        # This function should really be on a cronjob, but for illustration purposes...
-        time.sleep(3600)
-        runner()
+    Searches all the selected Amazon stores for the products in the database, and inserts the new values in the database.
+
+    Arguments:
+        connection {SQLiteObject} -- A connection ot the database.
+    """
+
+    conn = getConnection(database)
+    allItems = getAllItems(conn)
+    print("* There are {} items *".format(len(allItems)))
+    for i in getAllItems(conn):
+        print("** Starting product with ID: {} **".format(i[0]))
+        for k,v in COUNTRY.items():
+            print("*** Checking price for {} in {} ***".format(i[0], v['code']))
+            a = getProductPrice(k, i[0])
+            if a:
+                print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
+                insertToDatabase(a, conn)
+            else:
+                print("*** Product Not Available ***")
+            time.sleep(5)
+    print("*** Scraping Finished for Today: {} ! Come back tomorrow! ***".format(datetime.date.today()))
 
 if __name__ == "__main__":
     runner('test.db')

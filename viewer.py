@@ -26,12 +26,12 @@ def showDailyPrices(database):
     for i in daily:
         print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(i[0], i[3], i[4], i[5], i[2]))
 
-def newProduct(database, id):
+def newProduct(id, connection):
     """Inserts a new product in the database.
     Searchs all of the  Amazon websites for values and inserts them in the databse.
 
     Arguments:
-        database {string} -- The path to the .db file.
+        connection {SQLiteObject} -- A connection ot the database.
         id {string} -- ID of the product.
     """
 
@@ -42,7 +42,7 @@ def newProduct(database, id):
             print("*** Product does not exists in {} ***".format(v['code']))
         else:
             print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
-            insertToDatabase(a, database)
+            insertToDatabase(a, connection)
         time.sleep(5)
 
 def getDeals(database):
@@ -69,4 +69,5 @@ def showPriceHistory(database, id):
     print(history)
 
 if __name__ == "__main__":
-    newProduct('test.db', 'B07GDR2LYK')
+    conn = getConnection('test.db')
+    newProduct('B07YBNB2PS', conn)
