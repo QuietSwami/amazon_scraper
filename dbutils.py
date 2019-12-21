@@ -103,7 +103,7 @@ def selectByCurrentDeal(connection):
         List -- A list of tuples. Each tuples is an entry in the database.
     """
     cursor = connection.cursor()
-    return cursor.execute('select * from products where isDeal = 1 and date = ?', (str(datetime.date.today()),)).fetchall()
+    return cursor.execute('select distinct id, currentPrice from products where isDeal = 1 and date = ?', (str(datetime.date.today()),)).fetchall()
 
 @sqliteException
 def getAllItems(connection):
@@ -152,7 +152,6 @@ def checkIfPriceDropped(id, connection):
     """Checks if the price dropped from yesterday to today.
 
     Arguments:
-          Arguments:
         id {string} -- The product ID, which is the name of the table.
         connection {SQLiteConnection} -- A SQLite connection.
 
@@ -166,6 +165,23 @@ def checkIfPriceDropped(id, connection):
     if today < yesterday:
         return True
     return False
+
+@sqliteException
+def getLastEntryByID(id, connection):
+    """Returns the last entry for a specific ID.
+    Currently, it gets when the entries for the current date.
+
+    Arguments:
+        id {string} -- The product ID, which is the name of the table.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        Tuple -- The value of the last entry for the given ID.
+    """
+
+    cursor = connection.cursor()
+    return cursor.execute('SELECT * from products where id = ? and date = ?', (id, datetime.date.today())).fetchall()
+
 
 if __name__ == "__main__":
     c = getConnection('test.db')

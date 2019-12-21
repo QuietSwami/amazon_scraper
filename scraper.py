@@ -28,13 +28,18 @@ COUNTRY = {
 }
 
 # DECORATOR FOR LOGGING
-# TODO Finish it...
 def log(function):
     def wrapper(*args, **kwargs):
         logging.debug('Starting {}'.format(function.__name__))
-        return function(*args, **kwargs)
+        values = function(*args, **kwargs)
+        if values:
+            logging.info('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(values[0], values[3], values[4], values[5], values[2]))
+        else:
+            logging.info("*** Not Available ***")
+        return values
     return wrapper
 
+@log
 def getProductPrice(countryCode, productId, isLocal=None, save=None):
     """Returns the Amazon page for a specific product as an BS object.
 
@@ -129,18 +134,21 @@ def runner(database):
     conn = getConnection(database)
     allItems = getAllItems(conn)
     print("* There are {} items *".format(len(allItems)))
-    for i in getAllItems(conn):
-        print("** Starting product with ID: {} **".format(i[0]))
-        for k,v in COUNTRY.items():
-            print("*** Checking price for {} in {} ***".format(i[0], v['code']))
-            a = getProductPrice(k, i[0])
-            if a:
-                print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
-                insertToDatabase(a, conn)
-            else:
-                print("*** Product Not Available ***")
-            time.sleep(5)
+    if len(allItems) > 0:
+        for i in getAllItems(conn):
+            print("** Starting product with ID: {} **".format(i[0]))
+            for k,v in COUNTRY.items():
+                print("*** Checking price for {} in {} ***".format(i[0], v['code']))
+                a = getProductPrice(k, i[0])
+                if a:
+                    print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
+                    insertToDatabase(a, conn)
+                else:
+                    print("*** Product Not Available ***")
+                time.sleep(5)
     print("*** Scraping Finished for Today: {} ! Come back tomorrow! ***".format(datetime.date.today()))
+    logging.info("*** Scraping Finished for Today: {} ! Come back tomorrow! ***".format(datetime.date.today()))
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='/home/quietswami/scraper.log', level=logging.INFO)
     runner('test.db')
