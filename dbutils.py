@@ -5,6 +5,18 @@
 import sqlite3
 import datetime
 
+'''
+TODO:
+    - Create user table.
+        - Email
+        - ID
+        - Username
+    - Create User Tracking Table:
+        - ID
+        - Product ID
+'''
+
+
 
 # This is a stupid thing to do.
 # But I wanted to learn a bit more about decorators, and this code will never see the light of a production env.
@@ -182,6 +194,21 @@ def getLastEntryByID(id, connection):
     cursor = connection.cursor()
     return cursor.execute('SELECT * from products where id = ? and date = ?', (id, datetime.date.today())).fetchall()
 
+@sqliteException
+def getEntryByDateCountry(id, country, date, connection):
+    """Returns if there is an entry where the fields are the given ones.
+
+    Arguments:
+        id {string} -- The product ID, which is the name of the table.
+        country {string} -- The country code.
+        date {datetime.date} -- The desired serached date.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        [type] -- [description]
+    """
+    cursor = connection.cursor()
+    return cursor.execute('SELECT * from products where id = ? and countryCode = ? date = ?', (id, country, date)).fetchone()
 
 if __name__ == "__main__":
     c = getConnection('test.db')
