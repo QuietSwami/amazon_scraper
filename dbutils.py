@@ -42,17 +42,48 @@ def getConnection(dbName):
     """
     return sqlite3.connect(dbName)
 
+#region Creation
+
 @sqliteException
-def createTable(connection):
+def createProductTable(connection):
+    """Creates the product table.
+
+    Arguments:
+        connection {SQLiteConnection} -- A SQLite connection.
+    """
     connection.cursor().execute('''CREATE TABLE IF NOT EXISTS products (id text, date date, countryCode text, currentPrice real, isDeal real, available real)''')
     connection.commit()
 
 @sqliteException
-def insert(data, connection):
+def createUserTable(connection):
+    """Creates the user table.
+
+    Arguments:
+        connection {SQLiteConnection} -- A SQLite connection.
+    """
+    connection.cursor().execute('''CREATE TABLE IF NOT EXISTS user (id text, email text)''')
+    connection.commit()
+
+
+@sqliteException
+def createSubscriptionTable(connection):
+    """Creates the user table.
+
+    Arguments:
+        connection {SQLiteConnection} -- A SQLite connection.
+    """
+    connection.cursor().execute('''CREATE TABLE IF NOT EXISTS subscription (userId text, productId text)''')
+    connection.commit()
+
+#endregion
+
+#region Insertion
+
+@sqliteException
+def insertProduct(data, connection):
     """Inserts data into a product table
 
     Arguments:
-        id {string} -- The product ID, which is the name of the table.
         data {tuple} -- The data to be inserted. Must be in this format (id: string, data: datetime.datetime.now(), currentPrice: float, isDeal: 0 or 1, available: 0 or 1)
         connection {SQLiteConnection} -- A SQLite connection.
     """
@@ -60,22 +91,57 @@ def insert(data, connection):
     connection.commit()
 
 @sqliteException
-def clearTable(connection):
+def insertUser(data, connection):
+    """Inserts data into a product table
+
+    Arguments:
+        data {tuple} -- The data to be inserted. Must be in this format (id: string, email: string)
+        connection {SQLiteConnection} -- A SQLite connection.
+    """
+    connection.cursor().execute("INSERT INTO user VALUES (?,?)", data)
+    connection.commit()
+
+@sqliteException
+def insertSubscription(data, connection):
+    """Inserts data into a product table
+
+    Arguments:
+        data {tuple} -- The data to be inserted. Must be in this format (userId: string, productId: string)
+        connection {SQLiteConnection} -- A SQLite connection.
+    """
+    connection.cursor().execute("INSERT INTO subscription VALUES (?,?)", data)
+    connection.commit()
+
+#endregion
+
+#region Delete/Drop
+@sqliteException
+def clearTable(table, connection):
     """Clears every record from the table.
         Vacuum is used to clear unused space.
 
     Arguments:
         connection {SQLiteConnection} -- A SQLite connection.
     """
-    connection.cursor().execute("delete from products")
+    connection.cursor().execute("delete from {}".format(table))
     connection.commit()
     connection.cursor().execute("vacuum")
     connection.commit()
 
 @sqliteException
-def dropTable(connection):
-    connection.cursor().execute('drop table products')
+def dropTable(table, connection):
+    """Drops the table.
+
+    Arguments:
+        table {string} -- The name of the table to be dropped
+        connection {SQLiteConnection} -- A SQLite connection.
+    """
+    connection.cursor().execute('drop table {}'.format(table))
     connection.commit()
+
+#endregion
+
+#region Product Select
 
 @sqliteException
 def selectWithID(id, connection):
@@ -209,6 +275,8 @@ def getEntryByDateCountry(id, country, date, connection):
     """
     cursor = connection.cursor()
     return cursor.execute('SELECT * from products where id = ? and countryCode = ? date = ?', (id, country, date)).fetchone()
+
+#endregion
 
 if __name__ == "__main__":
     c = getConnection('test.db')

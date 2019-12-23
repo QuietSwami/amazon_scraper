@@ -105,7 +105,7 @@ def insertToDatabase(data, connection):
         connection {SQLiteObject} -- A connection ot the database.
 
     """
-    insert(data, connection)
+    insertProduct(data, connection)
 
 
 def moneyConversion(baseValue, baseCurrency):
@@ -151,4 +151,3 @@ def runner(database):
 
 if __name__ == "__main__":
     logging.basicConfig(filename='/home/quietswami/scraper.log', level=logging.INFO)
-    runner('test.db')
