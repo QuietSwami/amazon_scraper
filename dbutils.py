@@ -6,17 +6,8 @@ import sqlite3
 import datetime
 
 '''
-TODO:
-    - Create user table.
-        - Email
-        - ID
-        - Username
-    - Create User Tracking Table:
-        - ID
-        - Product ID
+
 '''
-
-
 
 # This is a stupid thing to do.
 # But I wanted to learn a bit more about decorators, and this code will never see the light of a production env.
@@ -61,7 +52,7 @@ def createUserTable(connection):
     Arguments:
         connection {SQLiteConnection} -- A SQLite connection.
     """
-    connection.cursor().execute('''CREATE TABLE IF NOT EXISTS user (id text, email text)''')
+    connection.cursor().execute('''CREATE TABLE IF NOT EXISTS user (ID INTEGER PRIMARY KEY AUTOINCREMENT, email text)''')
     connection.commit()
 
 
@@ -91,14 +82,14 @@ def insertProduct(data, connection):
     connection.commit()
 
 @sqliteException
-def insertUser(data, connection):
+def insertUser(email, connection):
     """Inserts data into a product table
 
     Arguments:
-        data {tuple} -- The data to be inserted. Must be in this format (id: string, email: string)
+        email {string} -- The email of the user.
         connection {SQLiteConnection} -- A SQLite connection.
     """
-    connection.cursor().execute("INSERT INTO user VALUES (?,?)", data)
+    connection.cursor().execute("INSERT INTO user (email) VALUES (?)", email)
     connection.commit()
 
 @sqliteException
@@ -115,6 +106,7 @@ def insertSubscription(data, connection):
 #endregion
 
 #region Delete/Drop
+
 @sqliteException
 def clearTable(table, connection):
     """Clears every record from the table.
@@ -276,13 +268,94 @@ def getEntryByDateCountry(id, country, date, connection):
     cursor = connection.cursor()
     return cursor.execute('SELECT * from products where id = ? and countryCode = ? date = ?', (id, country, date)).fetchone()
 
+@sqliteException
+def doesUserExists(id, connection):
+    """Returns 1 if user exists.
+
+    Arguments:
+        id {string} -- The requested user ID.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        Boolean -- Returns True if there is a user with the ID = id.
+    """
+    cursor = connection.cursor()
+    return bool(cursor.execute('SELECT CASE WHEN EXISTS (\
+    SELECT *\
+    FROM user\
+    WHERE id = ?\
+    )\
+    THEN CAST(1 AS BIT)\
+    ELSE CAST(0 AS BIT) END', (id,)).fetchone()[0])
+
+@sqliteException
+def doesProductExist(id, connection):
+    """Returns 1 if user exists.
+
+    Arguments:
+        id {string} -- The requested product ID.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        Boolean -- Returns True if there is a user with the ID = id.
+    """
+    cursor = connection.cursor()
+    return bool(cursor.execute('SELECT CASE WHEN EXISTS (\
+    SELECT *\
+    FROM product\
+    WHERE id = ?\
+    )\
+    THEN CAST(1 AS BIT)\
+    ELSE CAST(0 AS BIT) END', (id,)).fetchone()[0])
+
+
+@sqliteException
+def getUserSubscriptions(id, connection):
+    """Return a users subscriptions.
+
+    Arguments:
+        id {string} -- The user ID.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        Boolean -- Returns True if there is a user with the ID = id.
+    """
+    cursor = connection.cursor()
+    return cursor.execute('SELECT * from subscriptions where userID = ?', (id,)).fetchall()
+
+@sqliteException
+def isUserSubscribed(userID, productID, connection):
+    """Checks if user is subscribed for a product, and returns its email.
+
+    Arguments:
+        userID {string} -- The user ID.
+        productID {string} -- The product ID.
+        connection {SQLiteConnection} -- A SQLite connection.
+
+    Returns:
+        Boolean -- Returns True if there is a user with the ID = id.
+    """
+    cursor = connection.cursor()
+    return bool(cursor.execute('SELECT CASE WHEN EXISTS (\
+    SELECT *\
+    FROM subscription\
+    WHERE userID = ?\
+    and productID = ?\
+    )\
+    THEN CAST(1 AS BIT)\
+    ELSE CAST(0 AS BIT) END', (userID, productID)).fetchone()[0])
+
 #endregion
 
 if __name__ == "__main__":
     c = getConnection('test.db')
+    # createSubscriptionTable(c)
+    # createUserTable(c)
+    # dropTable('user', c)
+    createUserTable(c)
+    insertUser(('fran.abm94@gmail.com',),c)
     # clearTable(c)
     # dropTable(c)
-    createTable(c)
     # print(getLastDate(c))
     # data = ["asdasafasd", datetime.date.today(), float(90.9), 1, 1]
     # insert(data, c)

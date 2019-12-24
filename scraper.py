@@ -151,3 +151,4 @@ def runner(database):
 
 if __name__ == "__main__":
     logging.basicConfig(filename='/home/quietswami/scraper.log', level=logging.INFO)
+    runner('test.db')

@@ -8,11 +8,34 @@ from emailUtils import *
 import logging
 import datetime
 
+def productScrap(productID, connection):
+    for k,v in COUNTRY.items():
+        print("*** Checking price for {} in {} ***".format(i[0], v['code']))
+        a = getProductPrice(k, i[0])
+        if a:
+            print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
+            insertToDatabase(a, connection)
+            if a[4]:
+                sendDeal()
+        else:
+            print("*** Product Not Available ***")
+
 def checkPriceChange(id, country, date, currentPrice, conn):
     price = getEntryByDateCountry(id, country, date, conn)[3]
     if price > currentPrice:
         return True
     return False
+
+def registerNewUser(email, conn):
+    insertUser(email)
+
+def registerNewSubscription(userID, productID, conn):
+    if doesUserExists(userID, conn):
+        if doesProductExist(productID, conn):
+            insertSubscription((userID, productID))
+        else:
+            logging.info('*** Product with ID: {} is not on the database. Starting Scrape... ***'.format(productID))
+
 
 def run(database):
     conn = getConnection(database)
