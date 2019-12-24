@@ -56,7 +56,7 @@ def sendEmail(emailTemp, receiverEmail, id, link, previousPrice, newPrice, count
     server.sendMessage(mess)
     server.quit()
 
-def sendPriceDrop():
+def sendPriceDrop(users, productID):
     pass
 
 def sendDeal():

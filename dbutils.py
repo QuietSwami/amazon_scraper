@@ -345,6 +345,14 @@ def isUserSubscribed(userID, productID, connection):
     THEN CAST(1 AS BIT)\
     ELSE CAST(0 AS BIT) END', (userID, productID)).fetchone()[0])
 
+def usersBySubscription(productID, connection):
+    cursor = connection.cursor()
+    return cursor.execute('select userID from subscription where productID = ?', (productID,)).fetchall()
+
+def getEmail(userId, connection):
+    cursor = connection.cursor()
+    return cursor.execute('select email from user where id = ?', (userId,)).fetchone()
+
 #endregion
 
 if __name__ == "__main__":

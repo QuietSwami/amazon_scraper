@@ -21,7 +21,7 @@ def productScrap(productID, connection):
             print("*** Product Not Available ***")
 
 def checkPriceChange(id, country, date, currentPrice, conn):
-    price = getEntryByDateCountry(id, country, date, conn)[3]
+    price = getEntryByDateCountry(id, country, date, co`nn)[3]
     if price > currentPrice:
         return True
     return False
@@ -35,7 +35,7 @@ def registerNewSubscription(userID, productID, conn):
             insertSubscription((userID, productID))
         else:
             logging.info('*** Product with ID: {} is not on the database. Starting Scrape... ***'.format(productID))
-
+            productScrap(productID, conn)
 
 def run(database):
     conn = getConnection(database)
@@ -47,13 +47,14 @@ def run(database):
             for k,v in COUNTRY.items():
                 print("*** Checking price for {} in {} ***".format(i[0], v['code']))
                 a = getProductPrice(k, i[0])
+                users = [getEmail(i[0]) for i in usersBySubscription(k, conn)]
                 if a:
                     print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
                     insertToDatabase(a, conn)
                     if a[4]:
-                        sendPriceDrop()
+                        sendDeal(users, k)
                     elif checkPriceChange(a[0], a[2], datetime.date.today() - datetime.timedelta(days=1),  a[3]):
-                        sendDeal()
+                        sendPriceDrop(users, k)
                 else:
                     print("*** Product Not Available ***")
                 time.sleep(5)
