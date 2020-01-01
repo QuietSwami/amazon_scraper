@@ -10,8 +10,8 @@ import datetime
 
 def productScrap(productID, connection):
     for k,v in COUNTRY.items():
-        print("*** Checking price for {} in {} ***".format(i[0], v['code']))
-        a = getProductPrice(k, i[0])
+        print("*** Checking price for {} in {} ***".format(productID, v['code']))
+        a = getProductPrice(k, productID)
         if a:
             print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
             insertToDatabase(a, connection)
@@ -21,8 +21,9 @@ def productScrap(productID, connection):
             print("*** Product Not Available ***")
 
 def checkPriceChange(id, country, date, currentPrice, conn):
-    price = getEntryByDateCountry(id, country, date, co`nn)[3]
+    price = getEntryByDateCountry(id, country, date, conn)[3]
     if price > currentPrice:
+        logging.info("* Price has dropped! *")
         return True
     return False
 
@@ -53,7 +54,7 @@ def run(database):
                     insertToDatabase(a, conn)
                     if a[4]:
                         sendDeal(users, k)
-                    elif checkPriceChange(a[0], a[2], datetime.date.today() - datetime.timedelta(days=1),  a[3]):
+                    elif checkPriceChange(a[0], a[2], getLastDate(conn),  a[3], conn):
                         sendPriceDrop(users, k)
                 else:
                     print("*** Product Not Available ***")
@@ -64,4 +65,6 @@ def run(database):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='/home/quietswami/scraper.log', level=logging.INFO)
-
+    conn = getConnection('test.db')
+    # run('test.db')
+    productScrap("B07NPLNH49", conn)

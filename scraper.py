@@ -44,7 +44,7 @@ def getProductPrice(countryCode, productId, isLocal=None, save=None):
     """Returns the Amazon page for a specific product as an BS object.
 
     Arguments:
-        countryCode {str} -- The website country code for the Amazon Web site.
+        countryCode {str} -- The website country code for the   Amazon Web site.
         productId {str} -- The id for the product to be searched.
         isLocal {None} -- When using a local HTML file (recomended for testing), pass the file path to load the local HTML file.
         save {None} -- Stores the page as an HTML file. If a path is passed, it will store the page to the given path.

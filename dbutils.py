@@ -266,7 +266,7 @@ def getEntryByDateCountry(id, country, date, connection):
         [type] -- [description]
     """
     cursor = connection.cursor()
-    return cursor.execute('SELECT * from products where id = ? and countryCode = ? date = ?', (id, country, date)).fetchone()
+    return cursor.execute('SELECT * from products where id = ? and countryCode = ? and date = ?', (id, country, date)).fetchone()
 
 @sqliteException
 def doesUserExists(id, connection):
