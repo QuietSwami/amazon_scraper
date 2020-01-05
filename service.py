@@ -38,11 +38,27 @@ def registerNewSubscription(userID, productID, conn):
             logging.info('*** Product with ID: {} is not on the database. Starting Scrape... ***'.format(productID))
             productScrap(productID, conn)
 
+def databaseCheck(conn):
+    """Checks if the database has all the necessary tables.
+    If a necessary tables does not exist, it creates it.
+    """
+    if not checkTable(conn, 'products'):
+        createProductTable(conn)
+
+    if not checkTable(conn, 'subscription'):
+        createSubscriptionTable(conn)
+
+    if not checkTable(conn, 'user'):
+        createUserTable(conn)
+
 def run(database):
+    logging.info("*** Starting Scraping... ***")
+
     conn = getConnection(database)
+    databaseCheck(conn)
     allItems = getAllItems(conn)
-    logging.info("* There are {} items *".format(len(allItems)))
-    if len(allItems) > 0:
+    if allItems and  len(allItems) > 0:
+        logging.info("* There are {} items *".format(len(allItems)))
         for i in getAllItems(conn):
             print("** Starting product with ID: {} **".format(i[0]))
             for k,v in COUNTRY.items():
@@ -59,12 +75,16 @@ def run(database):
                 else:
                     print("*** Product Not Available ***")
                 time.sleep(5)
+    else:
+        createProductTable(conn)
 
     print("*** Scraping Finished for Today: {} ! Come back tomorrow! ***".format(datetime.date.today()))
     logging.info("*** Scraping Finished for Today: {} ! Come back tomorrow! ***".format(datetime.date.today()))
 
 if __name__ == '__main__':
     logging.basicConfig(filename='/home/quietswami/scraper.log', level=logging.INFO)
+    run('test.db')
+
+    # Insert new Product
     conn = getConnection('test.db')
-    # run('test.db')
-    productScrap("B07NPLNH49", conn)
+    productScrap("B07GDR2LYK", conn)

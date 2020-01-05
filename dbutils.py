@@ -66,6 +66,19 @@ def createSubscriptionTable(connection):
     connection.cursor().execute('''CREATE TABLE IF NOT EXISTS subscription (userId text, productId text)''')
     connection.commit()
 
+
+def checkTable(connection, tableName):
+    """Returns the name of the table, if the table exists.
+
+    Arguments:
+        connection {SQLiteConnection} -- A SQLite connection.
+        tableName {string} -- The name of the table to be checked.
+    """
+    a = connection.cursor().execute('''SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?''', (tableName,)).fetchall()
+    if a:
+        return True
+    else:
+        return False
 #endregion
 
 #region Insertion
@@ -186,7 +199,7 @@ def getAllItems(connection):
         List -- A list of tuples. Each tuple is a distinct item id.
     """
     cursor = connection.cursor()
-    return cursor.execute('select distinct id from products').fetchall()
+    return cursor.execute('SELECT distinct id from products').fetchall()
 
 
 @sqliteException
@@ -357,11 +370,12 @@ def getEmail(userId, connection):
 
 if __name__ == "__main__":
     c = getConnection('test.db')
+    getAllItems(c)
     # createSubscriptionTable(c)
     # createUserTable(c)
     # dropTable('user', c)
-    createUserTable(c)
-    insertUser(('fran.abm94@gmail.com',),c)
+    # createUserTable(c)
+    # insertUser(('fran.abm94@gmail.com',),c)
     # clearTable(c)
     # dropTable(c)
     # print(getLastDate(c))
@@ -370,8 +384,8 @@ if __name__ == "__main__":
     # data = ["rrrrrr", datetime.date.today(), float(91.9), 1, 1]
     # insert(data, c)
 
-    # available = selectByAvailability(c)
-    # print(available)
+    available = selectByAvailability(c)
+    print(available)
 
     # deal = selectByCurrentDeal(c)
     # print(deal)
