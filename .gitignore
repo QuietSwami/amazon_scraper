@@ -109,7 +109,9 @@ dmypy.json
 
 ### VisualStudioCode ###
 .vscode/*
-.code-workspace
+
+workspace.code-workspace
+
 ### VisualStudioCode Patch ###
 # Ignore all local history of files
 .history
