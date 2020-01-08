@@ -64,14 +64,14 @@ def run(database):
             for k,v in COUNTRY.items():
                 print("*** Checking price for {} in {} ***".format(i[0], v['code']))
                 a = getProductPrice(k, i[0])
-                users = [getEmail(i[0]) for i in usersBySubscription(k, conn)]
+                users = [getEmail(userId[0], conn) for userId in usersBySubscription(i[0], conn)]
                 if a:
                     print('ID: {} | Price: {} | Is Deal?: {} | Is Available?: {} | Country: {}'.format(a[0], a[3], a[4], a[5], a[2]))
                     insertToDatabase(a, conn)
                     if a[4]:
-                        sendDeal(users, k)
+                        sendDeal(users, i[0])
                     elif checkPriceChange(a[0], a[2], getLastDate(conn),  a[3], conn):
-                        sendPriceDrop(users, k)
+                        sendPriceDrop(users, i[0])
                 else:
                     print("*** Product Not Available ***")
                 time.sleep(5)
