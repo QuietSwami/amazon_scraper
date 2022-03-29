@@ -76,7 +76,7 @@ numpy==1.17.4
 oauthlib==2.1.0
 olefile==0.46
 packaging==19.2
-paramiko==2.6.0
+paramiko==2.10.1
 pendulum==2.0.5
 pexpect==4.6.0
 Pillow==6.2.0
